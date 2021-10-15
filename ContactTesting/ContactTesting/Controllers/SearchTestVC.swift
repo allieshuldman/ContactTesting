@@ -32,7 +32,7 @@ class SearchTestVC: UIViewController {
       }
     }
     else {
-      randomContacts = []
+      randomContacts = Set((0..<searchParameters.searchAmount).map { _ in RandomContactGenerator.generate() })
     }
 
     super.init(nibName: nil, bundle: Bundle.main)
@@ -135,6 +135,7 @@ class SearchTestVC: UIViewController {
         let averageTime = Double(executionTimes.reduce(0, { $0 + $1 })) / Double(executionTimes.count)
         let timeStrings = executionTimes.map { String($0).prefix(10) }
         resultLabel.text = "Average Time: \(String(averageTime).prefix(10))\n\nTimes (s): \n\(timeStrings.joined(separator: "\n"))"
+        print(averageTime)
         resultLabel.sizeToFit()
         view.setNeedsLayout()
       }

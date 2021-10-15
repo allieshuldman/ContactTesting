@@ -24,5 +24,3 @@ struct Contact: Hashable {
     return "Name: \(firstName) \(lastName)\nEmail: \(email)\nPhone: \(phoneNumber)\nURL: \(url)"
   }
 }
-
-var fakeContact = Contact(firstName: "Allie", lastName: "Shuldman", email: "allieshuldman@fakeemail.com", phoneNumber: 2032032203, id: "17212e3c5436e2c71e5aa0530907e01f5ab064abddf8ace6119c449ba829f8e6516677d13a4380711889cbdb4fb1f00edcf6f5")

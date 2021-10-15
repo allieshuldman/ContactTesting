@@ -43,6 +43,10 @@ class SearchConfigVC: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    let tap = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+    tap.cancelsTouchesInView = false
+    view.addGestureRecognizer(tap)
+
     view.backgroundColor = tableView.backgroundColor
 
     amountLabel.text = "Number of contacts to search for:"
@@ -58,7 +62,7 @@ class SearchConfigVC: UIViewController {
     buttonBackground.backgroundColor = .clear
 
     tableView.estimatedRowHeight = 44
-    tableView.estimatedSectionHeaderHeight = 44
+    tableView.estimatedSectionHeaderHeight = 50
 
     view.addSubview(scrollView)
     scrollView.addSubview(tableView)
@@ -124,6 +128,10 @@ class SearchConfigVC: UIViewController {
         selectedCells[sectionForSectionIndex(section)] = 0
       }
     }
+  }
+
+  @objc func hideKeyboard() {
+    view.endEditing(true)
   }
 
   // MARK: - Section Helpers

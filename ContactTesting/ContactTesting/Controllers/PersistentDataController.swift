@@ -11,11 +11,34 @@ class PersistentDataController {
   static let shared = PersistentDataController()
 
   enum Key {
+    static let groupId = "groupId"
     static let exportCountKey = "exportCountKey"
     static let contactIdMapKey = "contactIdMapKey"
   }
 
   let store = UserDefaults.standard
+
+  // MARK: - Clear Data
+
+  func clearData() {
+    resetGroupId()
+    resetExportedCount()
+    resetIdMap()
+  }
+
+  // MARK: - Group Id
+
+  func getTestGroupId() -> String? {
+    return store.value(forKey: Key.groupId) as? String
+  }
+
+  func storeTestGroupId(_ id: String) {
+    store.set(id, forKey: Key.groupId)
+  }
+
+  func resetGroupId() {
+    store.removeObject(forKey: Key.groupId)
+  }
 
   // MARK: - Export Count
 
@@ -28,7 +51,7 @@ class PersistentDataController {
   }
 
   func resetExportedCount() {
-    store.set(0, forKey: Key.exportCountKey)
+    store.removeObject(forKey: Key.exportCountKey)
   }
 
   // MARK: - ContactId/DeviceId map
@@ -49,7 +72,7 @@ class PersistentDataController {
     return dict[contactId]
   }
 
-  func removeIds() {
-    store.set([:], forKey: Key.contactIdMapKey)
+  func resetIdMap() {
+    store.removeObject(forKey: Key.contactIdMapKey)
   }
 }

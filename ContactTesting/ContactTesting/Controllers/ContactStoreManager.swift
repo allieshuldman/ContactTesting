@@ -88,6 +88,14 @@ class ContactStoreManager {
     }
   }
 
+  private func getTestGroupId() -> String? {
+    if let storedValue = PersistentDataController.shared.getTestGroupId() {
+      return storedValue
+    }
+
+    return getTestGroup(createIfDoesntExist: false)?.identifier
+  }
+
   private func getTestGroup(createIfDoesntExist: Bool) -> CNGroup? {
     let groupName = "Contact-Testing"
     do {
@@ -141,6 +149,7 @@ class ContactStoreManager {
     do {
       try store.execute(saveRequest)
       PersistentDataController.shared.updateExportedCount(contacts.count)
+      PersistentDataController.shared.storeTestGroupId(group.identifier)
       return .success
     }
     catch {
@@ -171,8 +180,7 @@ class ContactStoreManager {
 
     do {
       try store.execute(deleteContactsRequest)
-      PersistentDataController.shared.removeIds()
-      PersistentDataController.shared.resetExportedCount()
+      PersistentDataController.shared.clearData()
     }
     catch {
       return .couldNotDeleteContacts
@@ -239,11 +247,11 @@ class ContactStoreManager {
     let groupPredicate: NSPredicate? = {
       switch location {
       case .testGroup:
-        guard let group = getTestGroup(createIfDoesntExist: false) else {
+        guard let groupId = getTestGroupId() else {
           return nil
         }
 
-        return CNContact.predicateForContactsInGroup(withIdentifier: group.identifier)
+        return CNContact.predicateForContactsInGroup(withIdentifier: groupId)
       case .wholeContainer:
         return nil
       }
@@ -308,7 +316,6 @@ class ContactStoreManager {
 
           if containsUrl {
             fetchedContacts.append(enumeratedContact)
-            stop.pointee = true
           }
         }
       }

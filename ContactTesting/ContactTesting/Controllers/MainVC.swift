@@ -69,7 +69,7 @@ class MainVC: UIViewController {
     numberOfContactsInMemoryLabel.sizeToFit()
     numberOfContactsInMemoryLabel.frame =  CGRect(
      x: Constants.leftInset,
-     y: Constants.minY,
+     y: Constants.topSpacing,
      width: view.frame.width - 2 * Constants.leftInset,
      height: numberOfContactsInMemoryLabel.frame.height
     )
@@ -208,8 +208,14 @@ class MainVC: UIViewController {
   }
 
   @objc func didTapBeginSearchTestButton() {
-    let searchConfigVC = SearchConfigVC()
-    navigationController?.pushViewController(searchConfigVC, animated: true)
+    if ContactStoreManager.shared.getNumberOfTestContactsOnDevice() == 0 {
+      let alert = createSimpleAlertController(title: "Add contacts to device before proceeding")
+      present(alert, animated: true, completion: nil)
+    }
+    else {
+      let searchConfigVC = SearchConfigVC()
+      navigationController?.pushViewController(searchConfigVC, animated: true)
+    }
   }
 
   // MARK: - Popup Helpers

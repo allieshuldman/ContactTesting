@@ -9,7 +9,6 @@ import UIKit
 
 class SearchConfigVC: UIViewController {
   enum Section: String, CaseIterable {
-    case searchLocation = "Search Location"
     case searchForExisting = "Search for existing contact?"
     case searchField = "Search field"
   }
@@ -100,7 +99,7 @@ class SearchConfigVC: UIViewController {
     amountLabel.sizeToFit()
     amountLabel.frame = CGRect(
       x: Constants.leftInset,
-      y: 0,
+      y: Constants.topSpacing,
       width: view.frame.width - 2 * Constants.leftInset,
       height: amountLabel.frame.height
     )
@@ -120,7 +119,7 @@ class SearchConfigVC: UIViewController {
     )
 
     scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: buttonBackground.frame.height, right: 0)
-    scrollView.contentSize = CGSize(width: view.frame.width, height: tableView.frame.maxY - amountLabel.frame.minY)
+    scrollView.contentSize = CGSize(width: view.frame.width, height: tableView.frame.maxY)
 
     for section in 0..<tableView.numberOfSections {
       if tableView.numberOfRows(inSection: section) > 0 {
@@ -138,7 +137,7 @@ class SearchConfigVC: UIViewController {
 
   func sectionForSectionIndex(_ index: Int) -> Section {
     guard index < Section.allCases.count else {
-      return .searchLocation
+      return .searchForExisting
     }
 
     return Section.allCases[index]
@@ -146,8 +145,6 @@ class SearchConfigVC: UIViewController {
 
   func dataForSection(_ section: Int) -> [String] {
     switch sectionForSectionIndex(section) {
-    case .searchLocation:
-      return SearchParameters.SearchLocation.allCases.map { $0.rawValue }
     case .searchForExisting:
       return ["Search for a contact that exists", "Search for a contact that doesn't exist"]
     case .searchField:
@@ -158,7 +155,7 @@ class SearchConfigVC: UIViewController {
   // MARK: - Button Handlers
 
   @objc func didTapBeginSearchTest() {
-    guard let searchLocationIndex = selectedCells[.searchLocation], searchLocationIndex < SearchParameters.SearchLocation.allCases.count, let searchFieldIndex = selectedCells[.searchField], searchFieldIndex < SearchParameters.SearchField.allCases.count else {
+    guard let searchFieldIndex = selectedCells[.searchField], searchFieldIndex < SearchParameters.SearchField.allCases.count else {
       return
     }
 
@@ -172,7 +169,6 @@ class SearchConfigVC: UIViewController {
 
 
     let searchParameters = SearchParameters(
-      searchLocation: SearchParameters.SearchLocation.allCases[searchLocationIndex],
       searchForExistingContact: selectedCells[.searchForExisting] == 0,
       searchField: SearchParameters.SearchField.allCases[searchFieldIndex],
       searchAmount: searchAmount

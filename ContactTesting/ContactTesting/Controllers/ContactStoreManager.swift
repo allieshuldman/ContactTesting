@@ -57,6 +57,28 @@ class ContactStoreManager {
     }
   }
 
+  enum SearchResult {
+    case success([CNContact])
+    case failure(SearchError)
+
+    enum SearchError {
+      case noIdentifier
+      case enumerationError
+      case fetchError
+
+      var description: String {
+        switch self {
+        case .noIdentifier:
+          return "Could not find identifier for contact"
+        case .enumerationError:
+          return "Could not enumerate contacts"
+        case .fetchError:
+          return "Could not fetch contacts"
+        }
+      }
+    }
+  }
+
   // MARK: - Contact Store Helpers
 
   static let shared = ContactStoreManager()
@@ -241,70 +263,46 @@ class ContactStoreManager {
 
   // MARK: - Search
 
-  func searchForContact(_ contact: Contact, location: SearchParameters.SearchLocation, field: SearchParameters.SearchField) -> [CNContact] {
+  func searchForContact(_ contact: Contact, field: SearchParameters.SearchField) -> SearchResult {
     let keysToFetch = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactEmailAddressesKey, CNContactPhoneNumbersKey, CNContactUrlAddressesKey] as [CNKeyDescriptor]
-
-    let groupPredicate: NSPredicate? = {
-      switch location {
-      case .testGroup:
-        guard let groupId = getTestGroupId() else {
-          return nil
-        }
-
-        return CNContact.predicateForContactsInGroup(withIdentifier: groupId)
-      case .wholeContainer:
-        return nil
-      }
-    }()
-
-    let fieldPredicate: NSPredicate? = {
-      switch field {
-      case .indexed(let indexedField):
-        switch indexedField {
-        case .identifier:
-          if let identifier = PersistentDataController.shared.getDeviceId(contactId: contact.id) {
-            return CNContact.predicateForContacts(withIdentifiers: [identifier])
-          }
-          return nil
-        case .name:
-          return CNContact.predicateForContacts(matchingName: contact.fullName)
-        case .phoneNumber:
-          return CNContact.predicateForContacts(matching: CNPhoneNumber(stringValue: String(contact.phoneNumber)))
-        case .emailAddress:
-          return CNContact.predicateForContacts(matchingEmailAddress: contact.email)
-        }
-      case .nonIndexed:
-        return nil
-      }
-    }()
-
-    let predicates = [groupPredicate, fieldPredicate].compactMap { $0 }
-
     switch field {
-    case .indexed:
-      return searchOnIndexedField(keys: keysToFetch, predicates: predicates)
-    case .nonIndexed(let nonIndexedParam):
-      return searchOnNonIdexedField(contact: contact, keys: keysToFetch, predicates: predicates, field: nonIndexedParam)
+    case .indexed(let indexedField):
+      var predicate: NSPredicate
+
+      switch indexedField {
+      case .identifier:
+        if let identifier = PersistentDataController.shared.getDeviceId(contactId: contact.id) {
+          predicate = CNContact.predicateForContacts(withIdentifiers: [identifier])
+        }
+        else {
+          return .failure(.noIdentifier)
+        }
+      case .name:
+        predicate = CNContact.predicateForContacts(matchingName: contact.fullName)
+      case .phoneNumber:
+        predicate = CNContact.predicateForContacts(matching: CNPhoneNumber(stringValue: String(contact.phoneNumber)))
+      case .emailAddress:
+        predicate = CNContact.predicateForContacts(matchingEmailAddress: contact.email)
+      }
+
+      return searchOnIndexedField(keys: keysToFetch, predicate: predicate)
+    case .nonIndexed(let nonIndexedField):
+      return searchOnNonIdexedField(contact: contact, keys: keysToFetch, field: nonIndexedField)
     }
   }
 
-  private func searchOnIndexedField(keys: [CNKeyDescriptor], predicates: [NSPredicate]) -> [CNContact] {
-    let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-
+  private func searchOnIndexedField(keys: [CNKeyDescriptor], predicate: NSPredicate) -> SearchResult {
     do {
       let contacts = try store.unifiedContacts(matching: predicate, keysToFetch: keys)
-      return contacts
+      return .success(contacts)
     }
     catch {
-      return []
+      return .failure(.fetchError)
     }
   }
 
-  private func searchOnNonIdexedField(contact: Contact, keys: [CNKeyDescriptor], predicates: [NSPredicate], field: SearchParameters.SearchFieldNonIndexed) -> [CNContact] {
+  private func searchOnNonIdexedField(contact: Contact, keys: [CNKeyDescriptor], field: SearchParameters.SearchFieldNonIndexed) -> SearchResult {
     let fetchRequest = CNContactFetchRequest(keysToFetch: keys)
-    let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-    fetchRequest.predicate = predicate
-
     var fetchedContacts = [CNContact]()
     do {
       try store.enumerateContacts(with: fetchRequest) { enumeratedContact, stop in
@@ -316,14 +314,15 @@ class ContactStoreManager {
 
           if containsUrl {
             fetchedContacts.append(enumeratedContact)
+            stop.pointee = true
           }
         }
       }
 
-      return fetchedContacts
+      return .success(fetchedContacts)
     }
     catch {
-      return []
+      return .failure(.enumerationError)
     }
   }
 }

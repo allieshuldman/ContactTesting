@@ -48,10 +48,10 @@ class SearchTestVC: UIViewController {
     view.backgroundColor = .white
 
     if searchParameters.searchAmount == 1 {
-      searchParametersLabel.text = "Searching for 1 contact that \(searchParameters.searchForExistingContact ? "does" : "doesn't") exist in the \(searchParameters.searchLocation.rawValue) by \(searchParameters.searchField.rawValue)"
+      searchParametersLabel.text = "Searching for 1 contact that \(searchParameters.searchForExistingContact ? "exists" : "doesn't exist") by \(searchParameters.searchField.rawValue)"
     }
     else {
-      searchParametersLabel.text = "Searching for \(searchParameters.searchAmount) contacts that \(searchParameters.searchForExistingContact ? "do" : "don't") exist in the \(searchParameters.searchLocation.rawValue) by \(searchParameters.searchField.rawValue)"
+      searchParametersLabel.text = "Searching for \(searchParameters.searchAmount) contacts that \(searchParameters.searchForExistingContact ? "" : "don't") exist by \(searchParameters.searchField.rawValue)"
     }
 
     searchParametersLabel.numberOfLines = 0
@@ -88,7 +88,7 @@ class SearchTestVC: UIViewController {
 
     searchParametersLabel.frame = CGRect(
       x: Constants.leftInset,
-      y: 0,
+      y: Constants.topSpacing,
       width: scrollView.frame.width - 2 * Constants.leftInset,
       height: searchParametersLabel.frame.height
     )
@@ -117,27 +117,71 @@ class SearchTestVC: UIViewController {
       height: resultLabel.frame.height
     )
 
-    scrollView.contentSize = CGSize(width: view.frame.width, height: resultLabel.frame.maxY - searchParametersLabel.frame.minY)
+    scrollView.contentSize = CGSize(width: view.frame.width, height: resultLabel.frame.maxY)
   }
 
   func search() {
-    var executionTimes = [Double]()
-    dispatchQueue.async { [self] in
-      for contact in randomContacts {
-        let startTime = Date()
-        let _ = ContactStoreManager.shared.searchForContact(contact, location: searchParameters.searchLocation, field: searchParameters.searchField)
-        let endTime = Date()
-        let executionTime = endTime.timeIntervalSince(startTime)
-        executionTimes.append(executionTime)
+    // Add spinner
+    let spinner = Spinner(style: .large)
+
+    DispatchQueue.main.async { [weak self] in
+      guard let strongSelf = self else {
+        return
       }
 
-      DispatchQueue.main.async {
-        let averageTime = Double(executionTimes.reduce(0, { $0 + $1 })) / Double(executionTimes.count)
-        let timeStrings = executionTimes.map { String($0).prefix(10) }
-        resultLabel.text = "Average Time: \(String(averageTime).prefix(10))\n\nTimes (s): \n\(timeStrings.joined(separator: "\n"))"
+      strongSelf.view.addSubview(spinner)
+
+      spinner.translatesAutoresizingMaskIntoConstraints = false
+      spinner.centerXAnchor.constraint(equalTo: strongSelf.view.centerXAnchor).isActive = true
+      spinner.centerYAnchor.constraint(equalTo: strongSelf.view.centerYAnchor).isActive = true
+      spinner.heightAnchor.constraint(equalToConstant: 100).isActive = true
+      spinner.widthAnchor.constraint(equalToConstant: 100).isActive = true
+
+      spinner.startAnimating()
+    }
+
+    var totalContactsFound = 0
+    var unsuccessfulFetches = 0
+
+    var executionTimes = [Double]()
+    var executionResults = [String]()
+
+    // Perform searches
+    dispatchQueue.async { [weak self] in
+      guard let strongSelf = self else {
+        return
+      }
+
+      for contact in strongSelf.randomContacts {
+        let startTime = Date()
+        let result = ContactStoreManager.shared.searchForContact(contact, field: strongSelf.searchParameters.searchField)
+        let endTime = Date()
+
+        switch result {
+        case .success(let contacts):
+          totalContactsFound += contacts.count
+          let executionTime = endTime.timeIntervalSince(startTime) * 1000
+          executionTimes.append(executionTime)
+          executionResults.append(String(executionTime))
+        case .failure(let error):
+          unsuccessfulFetches += 1
+          executionResults.append(error.description)
+        }
+      }
+
+      // Display results
+      DispatchQueue.main.async { [weak self] in
+        guard let strongSelf = self else {
+          return
+        }
+
+        spinner.stopAnimating()
+        spinner.removeFromSuperview()
+        let averageTime = executionTimes.count > 0 ? Double(executionTimes.reduce(0, { $0 + $1 })) / Double(executionTimes.count) : 0
+        strongSelf.resultLabel.text = "Total contacts found: \(totalContactsFound)\nNumber of unsuccessful fetches: \(unsuccessfulFetches)\n\nAverage Time (ms): \(String(averageTime).prefix(10))\n\nResults: \n\(executionResults.joined(separator: "\n"))"
         print(averageTime)
-        resultLabel.sizeToFit()
-        view.setNeedsLayout()
+        strongSelf.resultLabel.sizeToFit()
+        strongSelf.view.setNeedsLayout()
       }
     }
   }

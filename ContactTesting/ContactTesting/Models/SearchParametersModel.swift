@@ -8,11 +8,6 @@
 import Foundation
 
 public struct SearchParameters {
-  enum SearchLocation: String, CaseIterable {
-    case testGroup = "Test Group"
-    case wholeContainer = "Whole Container"
-  }
-
   enum SearchField: CaseIterable {
     case indexed(SearchFieldIndexed)
     case nonIndexed(SearchFieldNonIndexed)
@@ -45,7 +40,6 @@ public struct SearchParameters {
     case url = "URL"
   }
 
-  let searchLocation: SearchLocation
   let searchForExistingContact: Bool
   let searchField: SearchField
   let searchAmount: Int

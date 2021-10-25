@@ -5,8 +5,8 @@
 //  Created by Allie Shuldman on 10/5/21.
 //
 
-import Foundation
 import Contacts
+import Foundation
 
 class ContactStoreManager {
   // MARK: - Result Types
@@ -58,7 +58,7 @@ class ContactStoreManager {
   }
 
   enum SearchResult {
-    case success([CNContact])
+    case success([CNContact], TimeInterval)
     case failure(SearchError)
 
     enum SearchError {
@@ -151,61 +151,75 @@ class ContactStoreManager {
 
   // MARK: - Adding/Deleting from device
 
-  func addContactsToDevice(_ contacts: [Contact]) -> AddResult {
+  func addContactsToDevice(_ contacts: [Contact], progressIndicatorHandler: (Float) -> Void) -> AddResult {
     guard let group = getTestGroup(createIfDoesntExist: true) else {
       return .couldNotCreateGroup
     }
 
-    let saveRequest = CNSaveRequest()
-    var idMap = [String: String]()
+    var contactsAdded = 0
 
-    contacts.forEach {
-      let cnContact = CNMutableContact($0)
-      idMap[$0.id] = cnContact.identifier
-      saveRequest.add(cnContact, toContainerWithIdentifier: nil)
-      saveRequest.addMember(cnContact, to: group)
+    for contactBatch in createBatches(allContacts: contacts, batchSize: PersistentDataController.shared.batchSize) {
+      let saveRequest = CNSaveRequest()
+      var idMap = [String: String]()
+
+      contactBatch.forEach {
+        let cnContact = CNMutableContact($0)
+        idMap[$0.id] = cnContact.identifier
+        saveRequest.add(cnContact, toContainerWithIdentifier: nil)
+        saveRequest.addMember(cnContact, to: group)
+      }
+
+      PersistentDataController.shared.addIds(contactIdToDeviceIdMap: idMap)
+
+      do {
+        try store.execute(saveRequest)
+        PersistentDataController.shared.storeTestGroupId(group.identifier)
+        PersistentDataController.shared.updateExportedCount(contactBatch.count)
+
+        contactsAdded += contactBatch.count
+        progressIndicatorHandler(Float(contactsAdded) / Float(contacts.count))
+      }
+      catch {
+        return .couldNotAddContacts
+      }
     }
 
-    PersistentDataController.shared.addIds(contactIdToDeviceIdMap: idMap)
-
-    do {
-      try store.execute(saveRequest)
-      PersistentDataController.shared.updateExportedCount(contacts.count)
-      PersistentDataController.shared.storeTestGroupId(group.identifier)
-      return .success
-    }
-    catch {
-      return .couldNotAddContacts
-    }
+    return .success
   }
 
-  func deleteContacts() -> DeleteResult {
+  func deleteContacts(progressIndicatorHandler: (Float) -> Void) -> DeleteResult {
     guard let group = getTestGroup(createIfDoesntExist: false), let mutableGroup = group.mutableCopy() as? CNMutableGroup else {
       return .groupDoesntExist
     }
 
     let predicate = CNContact.predicateForContactsInGroup(withIdentifier: mutableGroup.identifier)
-    let deleteContactsRequest = CNSaveRequest()
+
+    var contacts: [CNContact]
 
     do {
-      let contacts = try store.unifiedContacts(matching: predicate, keysToFetch: [])
-
-      for cnContact in contacts {
-        if let mutableContact = cnContact.mutableCopy() as? CNMutableContact {
-          deleteContactsRequest.delete(mutableContact)
-        }
-      }
+      contacts = try store.unifiedContacts(matching: predicate, keysToFetch: [])
     }
     catch {
       return .couldNotFetchContacts
     }
 
-    do {
-      try store.execute(deleteContactsRequest)
-      PersistentDataController.shared.clearData()
-    }
-    catch {
-      return .couldNotDeleteContacts
+    var contactsDeleted = 0
+
+    for contactBatch in createBatches(allContacts: contacts, batchSize: PersistentDataController.shared.batchSize) {
+      let deleteContactsRequest = CNSaveRequest()
+      for cnContact in contactBatch {
+        if let mutableContact = cnContact.mutableCopy() as? CNMutableContact {
+          deleteContactsRequest.delete(mutableContact)
+        }
+      }
+      do {
+        try store.execute(deleteContactsRequest)
+        contactsDeleted += contactBatch.count
+        progressIndicatorHandler(Float(contactsDeleted) / Float(contacts.count))
+      }
+      catch {
+        return .couldNotDeleteContacts
+      }
     }
 
     let deleteGroupRequest = CNSaveRequest()
@@ -218,7 +232,21 @@ class ContactStoreManager {
       return .couldNotDeleteGroup
     }
 
+    PersistentDataController.shared.clearData()
     return .success
+  }
+
+  func createBatches<T>(allContacts: [T], batchSize: Int) -> [[T]] {
+    var batches = [[T]]()
+    let numberOfBatches = Int((Double(allContacts.count) / Double(batchSize)).rounded(.up))
+
+    for batchIndex in 0..<numberOfBatches {
+      let startIndex = batchSize * batchIndex
+      let endIndex = min(allContacts.count, startIndex + batchSize)
+      batches.append(Array(allContacts[startIndex..<endIndex]))
+    }
+
+    return batches
   }
 
   // MARK: - Fetching from device
@@ -265,6 +293,7 @@ class ContactStoreManager {
 
   func searchForContact(_ contact: Contact, field: SearchParameters.SearchField) -> SearchResult {
     let keysToFetch = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactEmailAddressesKey, CNContactPhoneNumbersKey, CNContactUrlAddressesKey] as [CNKeyDescriptor]
+
     switch field {
     case .indexed(let indexedField):
       var predicate: NSPredicate
@@ -285,26 +314,37 @@ class ContactStoreManager {
         predicate = CNContact.predicateForContacts(matchingEmailAddress: contact.email)
       }
 
-      return searchOnIndexedField(keys: keysToFetch, predicate: predicate)
+      return search(using: predicate, keys: keysToFetch)
+
     case .nonIndexed(let nonIndexedField):
-      return searchOnNonIdexedField(contact: contact, keys: keysToFetch, field: nonIndexedField)
+      return enumerationSearch(contact: contact, keys: keysToFetch, field: nonIndexedField)
+
+    case .hiddenPredicate(let hidden):
+      switch hidden {
+      case .url:
+        return search(using: CNContact.predicateForContacts(matchingURL: contact.url), keys: keysToFetch)
+      }
     }
   }
 
-  private func searchOnIndexedField(keys: [CNKeyDescriptor], predicate: NSPredicate) -> SearchResult {
+  private func search(using predicate: NSPredicate, keys: [CNKeyDescriptor]) -> SearchResult {
     do {
+      let startTime = Date()
       let contacts = try store.unifiedContacts(matching: predicate, keysToFetch: keys)
-      return .success(contacts)
+      let endTime = Date()
+      let searchTime = endTime.timeIntervalSince(startTime)
+      return .success(contacts, searchTime)
     }
     catch {
       return .failure(.fetchError)
     }
   }
 
-  private func searchOnNonIdexedField(contact: Contact, keys: [CNKeyDescriptor], field: SearchParameters.SearchFieldNonIndexed) -> SearchResult {
+  private func enumerationSearch(contact: Contact, keys: [CNKeyDescriptor], field: SearchParameters.SearchFieldNonIndexed) -> SearchResult {
     let fetchRequest = CNContactFetchRequest(keysToFetch: keys)
     var fetchedContacts = [CNContact]()
     do {
+      let startTime = Date()
       try store.enumerateContacts(with: fetchRequest) { enumeratedContact, stop in
         switch field {
         case .url:
@@ -318,8 +358,10 @@ class ContactStoreManager {
           }
         }
       }
+      let endTime = Date()
+      let searchTime = endTime.timeIntervalSince(startTime)
 
-      return .success(fetchedContacts)
+      return .success(fetchedContacts, searchTime)
     }
     catch {
       return .failure(.enumerationError)

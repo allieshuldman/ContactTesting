@@ -8,15 +8,21 @@
 import Foundation
 
 class PersistentDataController {
-  static let shared = PersistentDataController()
-
   enum Key {
     static let groupId = "groupId"
     static let exportCountKey = "exportCountKey"
     static let contactIdMapKey = "contactIdMapKey"
+    static let batchSizeKey = "batchSizeKey"
   }
 
+  static let shared = PersistentDataController()
   let store = UserDefaults.standard
+  var inMemoryIdMap: [String: String]
+
+  // MARK: - Init
+  init() {
+    inMemoryIdMap = store.value(forKey: Key.contactIdMapKey) as? [String: String] ?? [:]
+  }
 
   // MARK: - Clear Data
 
@@ -62,9 +68,15 @@ class PersistentDataController {
       dict[contactId] = deviceId
     }
     store.set(dict, forKey: Key.contactIdMapKey)
+    inMemoryIdMap = dict
   }
 
   func getDeviceId(contactId: String) -> String? {
+    if let inMemoryValue = inMemoryIdMap[contactId] {
+      print("in mem")
+      return inMemoryValue
+    }
+
     guard let dict = store.value(forKey: Key.contactIdMapKey) as? [String: String] else {
       return nil
     }
@@ -74,5 +86,15 @@ class PersistentDataController {
 
   func resetIdMap() {
     store.removeObject(forKey: Key.contactIdMapKey)
+  }
+
+  // MARK: - Batch size
+  var batchSize: Int {
+    get {
+      return store.value(forKey: Key.batchSizeKey) as? Int ?? 100
+    }
+    set {
+      store.set(newValue, forKey: Key.batchSizeKey)
+    }
   }
 }

@@ -5,8 +5,9 @@
 //  Created by Allie Shuldman on 10/11/21.
 //
 
-import UIKit
 import Contacts
+import MessageUI
+import UIKit
 
 class SearchTestVC: UIViewController {
   let searchParameters: SearchParameters
@@ -18,21 +19,17 @@ class SearchTestVC: UIViewController {
   let expectedNumberOfContactsLabel = BoldLabel()
   let actualNumberOfContactsLabel = BoldLabel()
   let resultLabel = UILabel()
+  let sendResultsButton = BlueButton()
 
   let dispatchQueue = DispatchQueue(label: "SearchQueue")
 
   init(searchParameters: SearchParameters) {
     self.searchParameters = searchParameters
 
-    if searchParameters.searchForExistingContact {
-      while randomContacts.count < searchParameters.searchAmount {
-        let upperBound = min(numberOfContactsOnDevice, ContactListParser.shared.inMemoryContacts.count)
-        let randomIndex = Int.random(in: 0..<upperBound)
-        randomContacts.insert(ContactListParser.shared.inMemoryContacts[randomIndex])
-      }
-    }
-    else {
-      randomContacts = Set((0..<searchParameters.searchAmount).map { _ in RandomContactGenerator.generate() })
+    while randomContacts.count < searchParameters.searchAmount {
+      let upperBound = min(numberOfContactsOnDevice, ContactListParser.shared.inMemoryContacts.count)
+      let randomIndex = Int.random(in: 0..<upperBound)
+      randomContacts.insert(ContactListParser.shared.inMemoryContacts[randomIndex])
     }
 
     super.init(nibName: nil, bundle: Bundle.main)
@@ -47,12 +44,7 @@ class SearchTestVC: UIViewController {
 
     view.backgroundColor = .white
 
-    if searchParameters.searchAmount == 1 {
-      searchParametersLabel.text = "Searching for 1 contact that \(searchParameters.searchForExistingContact ? "exists" : "doesn't exist") by \(searchParameters.searchField.rawValue)"
-    }
-    else {
-      searchParametersLabel.text = "Searching for \(searchParameters.searchAmount) contacts that \(searchParameters.searchForExistingContact ? "" : "don't") exist by \(searchParameters.searchField.rawValue)"
-    }
+    searchParametersLabel.text = "Searching for \(searchParameters.searchAmount) contact(s) by \(searchParameters.searchField.rawValue)"
 
     searchParametersLabel.numberOfLines = 0
     searchParametersLabel.lineBreakMode = .byWordWrapping
@@ -66,6 +58,9 @@ class SearchTestVC: UIViewController {
     actualNumberOfContactsLabel.numberOfLines = 0
     actualNumberOfContactsLabel.lineBreakMode = .byWordWrapping
 
+    sendResultsButton.setTitle("Send results via email", for: .normal)
+    sendResultsButton.addTarget(self, action: #selector(didTapSendResultsButton), for: .touchUpInside)
+
     resultLabel.numberOfLines = 0
     resultLabel.lineBreakMode = .byWordWrapping
 
@@ -73,6 +68,7 @@ class SearchTestVC: UIViewController {
     scrollView.addSubview(searchParametersLabel)
     scrollView.addSubview(expectedNumberOfContactsLabel)
     scrollView.addSubview(actualNumberOfContactsLabel)
+    scrollView.addSubview(sendResultsButton)
     scrollView.addSubview(resultLabel)
   }
 
@@ -87,33 +83,40 @@ class SearchTestVC: UIViewController {
     scrollView.frame = view.frame
 
     searchParametersLabel.frame = CGRect(
-      x: Constants.leftInset,
-      y: Constants.topSpacing,
-      width: scrollView.frame.width - 2 * Constants.leftInset,
+      x: UIConstants.leftInset,
+      y: UIConstants.topSpacing,
+      width: scrollView.frame.width - 2 * UIConstants.leftInset,
       height: searchParametersLabel.frame.height
     )
     searchParametersLabel.sizeToFit()
 
     expectedNumberOfContactsLabel.frame = CGRect(
-      x: Constants.leftInset,
-      y: searchParametersLabel.frame.maxY + Constants.topSpacing,
+      x: UIConstants.leftInset,
+      y: searchParametersLabel.frame.maxY + UIConstants.topSpacing,
       width: searchParametersLabel.frame.width,
       height: searchParametersLabel.frame.height
     )
     expectedNumberOfContactsLabel.sizeToFit()
 
     actualNumberOfContactsLabel.frame = CGRect(
-      x: Constants.leftInset,
-      y: expectedNumberOfContactsLabel.frame.maxY + Constants.topSpacing,
+      x: UIConstants.leftInset,
+      y: expectedNumberOfContactsLabel.frame.maxY + UIConstants.topSpacing,
       width: actualNumberOfContactsLabel.frame.width,
       height: actualNumberOfContactsLabel.frame.height
     )
     actualNumberOfContactsLabel.sizeToFit()
 
+    sendResultsButton.frame = CGRect(
+      x: UIConstants.leftInset,
+      y: actualNumberOfContactsLabel.frame.maxY + UIConstants.topSpacing,
+      width: view.frame.width - 2 * UIConstants.leftInset,
+      height: UIConstants.buttonHeight
+    )
+
     resultLabel.frame = CGRect(
-      x: Constants.leftInset,
-      y: actualNumberOfContactsLabel.frame.maxY + Constants.topSpacing,
-      width: scrollView.frame.width - 2 * Constants.leftInset,
+      x: UIConstants.leftInset,
+      y: sendResultsButton.frame.maxY + UIConstants.topSpacing,
+      width: scrollView.frame.width - 2 * UIConstants.leftInset,
       height: resultLabel.frame.height
     )
 
@@ -153,14 +156,12 @@ class SearchTestVC: UIViewController {
       }
 
       for contact in strongSelf.randomContacts {
-        let startTime = Date()
         let result = ContactStoreManager.shared.searchForContact(contact, field: strongSelf.searchParameters.searchField)
-        let endTime = Date()
 
         switch result {
-        case .success(let contacts):
+        case .success(let contacts, let searchTime):
           totalContactsFound += contacts.count
-          let executionTime = endTime.timeIntervalSince(startTime) * 1000
+          let executionTime = searchTime * 1000
           executionTimes.append(executionTime)
           executionResults.append(String(executionTime))
         case .failure(let error):
@@ -178,12 +179,33 @@ class SearchTestVC: UIViewController {
         spinner.stopAnimating()
         spinner.removeFromSuperview()
         let averageTime = executionTimes.count > 0 ? Double(executionTimes.reduce(0, { $0 + $1 })) / Double(executionTimes.count) : 0
-        strongSelf.resultLabel.text = "Total contacts found: \(totalContactsFound)\nNumber of unsuccessful fetches: \(unsuccessfulFetches)\n\nAverage Time (ms): \(String(averageTime).prefix(10))\n\nResults: \n\(executionResults.joined(separator: "\n"))"
-        print(averageTime)
+        strongSelf.resultLabel.text = "Total contacts found: \(totalContactsFound)\nNumber of failed fetches: \(unsuccessfulFetches)\n\nAverage Time (ms): \(String(averageTime).prefix(10))\n\nResults: \n\(executionResults.joined(separator: "\n"))"
         strongSelf.resultLabel.sizeToFit()
         strongSelf.view.setNeedsLayout()
       }
     }
+  }
+
+  @objc func didTapSendResultsButton() {
+    guard MFMailComposeViewController.canSendMail() else {
+      let alertController = UIAlertController(title: "Make sure you have at least one mail account added to your device")
+      present(alertController, animated: true, completion: nil)
+      return
+    }
+
+    let composeVC = MFMailComposeViewController()
+    composeVC.mailComposeDelegate = self
+    composeVC.setSubject(searchParametersLabel.text ?? "")
+    composeVC.setMessageBody(resultLabel.text ?? "", isHTML: false)
+    self.present(composeVC, animated: true, completion: nil)
+  }
+}
+
+// MARK: - MFMailComposeViewControllerDelegate
+
+extension SearchTestVC: MFMailComposeViewControllerDelegate {
+  func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+    dismiss(animated: true, completion: nil)
   }
 }
 

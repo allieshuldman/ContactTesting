@@ -13,11 +13,11 @@ class BlueButton: UIButton {
 
     self.frame = frame
 
-    backgroundColor = UIColor(red: 0.72, green: 0.92, blue: 1.0, alpha: 1.0)
+    backgroundColor = Colors.lightBlue
     titleLabel?.textAlignment = .center
-    setTitleColor(UIColor(red: 0.0, green: 0.32, blue: 0.44, alpha: 1.0), for: .normal)
+    setTitleColor(Colors.darkBlue, for: .normal)
     setTitleColor(.gray, for: .highlighted)
-    layer.cornerRadius = Constants.cornerRadius
+    layer.cornerRadius = UIConstants.cornerRadius
   }
 
   required init?(coder: NSCoder) {

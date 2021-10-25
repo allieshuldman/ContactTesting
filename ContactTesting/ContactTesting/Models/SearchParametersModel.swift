@@ -11,11 +11,14 @@ public struct SearchParameters {
   enum SearchField: CaseIterable {
     case indexed(SearchFieldIndexed)
     case nonIndexed(SearchFieldNonIndexed)
+    case hiddenPredicate(SearchFieldHiddenPredicate)
 
     static var allCases: [SearchParameters.SearchField] {
       var indexed = SearchFieldIndexed.allCases.map { SearchField.indexed($0) }
       let nonIndexed = SearchFieldNonIndexed.allCases.map { SearchField.nonIndexed($0) }
+      let hiddenPredicate = SearchFieldHiddenPredicate.allCases.map { SearchField.hiddenPredicate($0) }
       indexed.append(contentsOf: nonIndexed)
+      indexed.append(contentsOf: hiddenPredicate)
       return indexed
     }
 
@@ -25,6 +28,8 @@ public struct SearchParameters {
         return "\(indexedParam.rawValue) (indexed)"
       case .nonIndexed(let nonIndexedParam):
         return "\(nonIndexedParam.rawValue) (not indexed)"
+      case .hiddenPredicate(let hiddenParam):
+        return "\(hiddenParam.rawValue) (hidden predicate)"
       }
     }
   }
@@ -40,7 +45,10 @@ public struct SearchParameters {
     case url = "URL"
   }
 
-  let searchForExistingContact: Bool
+  enum SearchFieldHiddenPredicate: String, CaseIterable {
+    case url = "URL"
+  }
+
   let searchField: SearchField
   let searchAmount: Int
 }

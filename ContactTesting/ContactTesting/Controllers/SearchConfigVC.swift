@@ -8,9 +8,15 @@
 import UIKit
 
 class SearchConfigVC: UIViewController {
-  enum Section: String, CaseIterable {
-    case searchForExisting = "Search for existing contact?"
-    case searchField = "Search field"
+  enum Section: Int, CaseIterable {
+    case searchField
+
+    var title: String {
+      switch self {
+      case .searchField:
+        return "SearchField"
+      }
+    }
   }
 
   static let cellIdentifier = "SearchConfigCell"
@@ -51,8 +57,8 @@ class SearchConfigVC: UIViewController {
     amountLabel.text = "Number of contacts to search for:"
 
     amountTextField.backgroundColor = .white
-    amountTextField.layer.cornerRadius = Constants.cornerRadius
-    amountTextField.placeholder = "Total contacts: \(maxContacts)"
+    amountTextField.layer.cornerRadius = UIConstants.cornerRadius
+    amountTextField.placeholder = " Default: 1, Total contacts: \(maxContacts)"
     amountTextField.keyboardType = .numberPad
 
     beginSearchTestButton.setTitle("Begin search test", for: .normal)
@@ -75,17 +81,17 @@ class SearchConfigVC: UIViewController {
     super.viewDidLayoutSubviews()
 
     beginSearchTestButton.frame = CGRect(
-      x: Constants.leftInset,
-      y: view.frame.maxY - Constants.buttonHeight - Constants.topSpacing,
-      width: view.frame.width - 2 * Constants.leftInset,
-      height: Constants.buttonHeight
+      x: UIConstants.leftInset,
+      y: view.frame.maxY - UIConstants.buttonHeight - UIConstants.topSpacing,
+      width: view.frame.width - 2 * UIConstants.leftInset,
+      height: UIConstants.buttonHeight
     )
 
     buttonBackground.frame = CGRect(
       x: 0,
-      y: view.frame.height - beginSearchTestButton.frame.height - 2 * Constants.topSpacing,
+      y: view.frame.height - beginSearchTestButton.frame.height - 2 * UIConstants.topSpacing,
       width: view.frame.width,
-      height: beginSearchTestButton.frame.height + 2 * Constants.topSpacing
+      height: beginSearchTestButton.frame.height + 2 * UIConstants.topSpacing
     )
 
     gradientLayer.frame = CGRect(x: 0, y: 0, width: buttonBackground.frame.width, height: buttonBackground.frame.height)
@@ -98,16 +104,16 @@ class SearchConfigVC: UIViewController {
 
     amountLabel.sizeToFit()
     amountLabel.frame = CGRect(
-      x: Constants.leftInset,
-      y: Constants.topSpacing,
-      width: view.frame.width - 2 * Constants.leftInset,
+      x: UIConstants.leftInset,
+      y: UIConstants.topSpacing,
+      width: view.frame.width - 2 * UIConstants.leftInset,
       height: amountLabel.frame.height
     )
 
     amountTextField.frame = CGRect(
-      x: Constants.leftInset,
-      y: amountLabel.frame.maxY + (Constants.topSpacing / 2.0),
-      width: view.frame.width - 2 * Constants.leftInset,
+      x: UIConstants.leftInset,
+      y: amountLabel.frame.maxY + (UIConstants.topSpacing / 2.0),
+      width: view.frame.width - 2 * UIConstants.leftInset,
       height: 50.0
     )
 
@@ -124,7 +130,7 @@ class SearchConfigVC: UIViewController {
     for section in 0..<tableView.numberOfSections {
       if tableView.numberOfRows(inSection: section) > 0 {
         tableView.selectRow(at: IndexPath(row: 0, section: section), animated: false, scrollPosition: UITableView.ScrollPosition.none)
-        selectedCells[sectionForSectionIndex(section)] = 0
+        selectedCells[Section(rawValue: section) ?? .searchField] = 0
       }
     }
   }
@@ -135,18 +141,12 @@ class SearchConfigVC: UIViewController {
 
   // MARK: - Section Helpers
 
-  func sectionForSectionIndex(_ index: Int) -> Section {
-    guard index < Section.allCases.count else {
-      return .searchForExisting
+  func dataForSection(_ section: Int) -> [String] {
+    guard let sectionType = Section(rawValue: section) else {
+      return []
     }
 
-    return Section.allCases[index]
-  }
-
-  func dataForSection(_ section: Int) -> [String] {
-    switch sectionForSectionIndex(section) {
-    case .searchForExisting:
-      return ["Search for a contact that exists", "Search for a contact that doesn't exist"]
+    switch sectionType {
     case .searchField:
       return SearchParameters.SearchField.allCases.map { $0.rawValue }
     }
@@ -169,7 +169,6 @@ class SearchConfigVC: UIViewController {
 
 
     let searchParameters = SearchParameters(
-      searchForExistingContact: selectedCells[.searchForExisting] == 0,
       searchField: SearchParameters.SearchField.allCases[searchFieldIndex],
       searchAmount: searchAmount
     )
@@ -183,8 +182,7 @@ class SearchConfigVC: UIViewController {
 
 extension SearchConfigVC: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    let section = sectionForSectionIndex(indexPath.section)
-    guard indexPath.row < dataForSection(indexPath.section).count else {
+    guard let section = Section(rawValue: indexPath.section), indexPath.row < dataForSection(indexPath.section).count else {
       return
     }
 
@@ -222,6 +220,6 @@ extension SearchConfigVC: UITableViewDataSource {
   }
 
   func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    return sectionForSectionIndex(section).rawValue
+    return Section(rawValue: section)?.title
   }
 }

@@ -11,6 +11,9 @@ class MainVC: UIViewController {
   let numberOfContactsInMemoryLabel = BoldLabel()
   let numberOfContactsInContainerLabel = BoldLabel()
   let numberOfContactsOnDeviceLabel = BoldLabel()
+  let batchSizeLabel = BoldLabel()
+
+  let batchSizeTextField = UITextField()
 
   let addContactsToDeviceButton = GrayButton()
   let deleteContactsFromDeviceButton = GrayButton()
@@ -20,6 +23,10 @@ class MainVC: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
+    let tap = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+    tap.cancelsTouchesInView = false
+    view.addGestureRecognizer(tap)
+    
     view.backgroundColor = .white
 
     ContactStoreManager.shared.promptForAccessIfNeeded { accessGranted in
@@ -30,7 +37,7 @@ class MainVC: UIViewController {
       }
       else {
         DispatchQueue.main.async {
-          let alertController = self.createSimpleAlertController(title: "Please grant contact access in device settings")
+          let alertController = UIAlertController(title: "Please grant contact access in device settings")
           self.present(alertController, animated: true, completion: nil)
         }
       }
@@ -49,9 +56,16 @@ class MainVC: UIViewController {
     beginSearchTestButton.setTitle("Configure search test", for: .normal)
     beginSearchTestButton.addTarget(self, action: #selector(didTapBeginSearchTestButton), for: .touchUpInside)
 
+    batchSizeTextField.text = "  \(PersistentDataController.shared.batchSize)"
+    batchSizeTextField.backgroundColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
+    batchSizeTextField.layer.cornerRadius = UIConstants.cornerRadius
+    batchSizeTextField.keyboardType = .numberPad
+
     view.addSubview(numberOfContactsInMemoryLabel)
     view.addSubview(numberOfContactsInContainerLabel)
     view.addSubview(numberOfContactsOnDeviceLabel)
+    view.addSubview(batchSizeLabel)
+    view.addSubview(batchSizeTextField)
     view.addSubview(addContactsToDeviceButton)
     view.addSubview(deleteContactsFromDeviceButton)
     view.addSubview(beginSearchTestButton)
@@ -61,6 +75,8 @@ class MainVC: UIViewController {
     numberOfContactsInMemoryLabel.text = "Number of contacts in memory: \(ContactListParser.shared.inMemoryContacts.count)"
     numberOfContactsInContainerLabel.text = "Number of contacts in container: \(ContactStoreManager.shared.getNumberOfTestContactsOnDevice())"
     numberOfContactsOnDeviceLabel.text = "Number of contacts on device: \(ContactStoreManager.shared.getNumberOfContactsOnDevice())"
+
+    batchSizeLabel.text = "Add/delete batch size:"
   }
 
   override func viewDidLayoutSubviews() {
@@ -68,49 +84,64 @@ class MainVC: UIViewController {
 
     numberOfContactsInMemoryLabel.sizeToFit()
     numberOfContactsInMemoryLabel.frame =  CGRect(
-     x: Constants.leftInset,
-     y: Constants.topSpacing,
-     width: view.frame.width - 2 * Constants.leftInset,
+     x: UIConstants.leftInset,
+     y: UIConstants.topSpacing,
+     width: view.frame.width - 2 * UIConstants.leftInset,
      height: numberOfContactsInMemoryLabel.frame.height
     )
 
     numberOfContactsInContainerLabel.sizeToFit()
     numberOfContactsInContainerLabel.frame =  CGRect(
-     x: Constants.leftInset,
-     y: numberOfContactsInMemoryLabel.frame.maxY + Constants.topSpacing,
-     width: view.frame.width - 2 * Constants.leftInset,
+     x: UIConstants.leftInset,
+     y: numberOfContactsInMemoryLabel.frame.maxY + UIConstants.topSpacing,
+     width: view.frame.width - 2 * UIConstants.leftInset,
      height: numberOfContactsInContainerLabel.frame.height
     )
 
     numberOfContactsOnDeviceLabel.sizeToFit()
     numberOfContactsOnDeviceLabel.frame =  CGRect(
-     x: Constants.leftInset,
-     y: numberOfContactsInContainerLabel.frame.maxY + Constants.topSpacing,
-     width: view.frame.width - 2 * Constants.leftInset,
+     x: UIConstants.leftInset,
+     y: numberOfContactsInContainerLabel.frame.maxY + UIConstants.topSpacing,
+     width: view.frame.width - 2 * UIConstants.leftInset,
      height: numberOfContactsOnDeviceLabel.frame.height
     )
 
+    batchSizeLabel.sizeToFit()
+    batchSizeLabel.frame = CGRect(
+      x: UIConstants.leftInset,
+      y: numberOfContactsOnDeviceLabel.frame.maxY + UIConstants.topSpacing,
+      width: batchSizeLabel.frame.width,
+      height: batchSizeLabel.frame.height
+    )
+
+    batchSizeTextField.frame = CGRect(
+      x: batchSizeLabel.frame.maxX + UIConstants.leftInset,
+      y: batchSizeLabel.frame.minY - (UIConstants.topSpacing / 2.0),
+      width: view.frame.width - UIConstants.leftInset - batchSizeLabel.frame.maxX - UIConstants.leftInset,
+      height: batchSizeLabel.frame.height + UIConstants.topSpacing
+    )
+
     addContactsToDeviceButton.frame = CGRect(
-      x: Constants.leftInset,
-      y: numberOfContactsOnDeviceLabel.frame.maxY + Constants.topSpacing,
-      width: view.frame.width - 2 * Constants.leftInset,
-      height: Constants.buttonHeight
+      x: UIConstants.leftInset,
+      y: batchSizeLabel.frame.maxY + UIConstants.topSpacing,
+      width: view.frame.width - 2 * UIConstants.leftInset,
+      height: UIConstants.buttonHeight
     )
 
     deleteContactsFromDeviceButton.frame = CGRect(
-      x: Constants.leftInset,
-      y: addContactsToDeviceButton.frame.maxY + Constants.topSpacing,
-      width: view.frame.width - 2 * Constants.leftInset,
-      height: Constants.buttonHeight
+      x: UIConstants.leftInset,
+      y: addContactsToDeviceButton.frame.maxY + UIConstants.topSpacing,
+      width: view.frame.width - 2 * UIConstants.leftInset,
+      height: UIConstants.buttonHeight
     )
 
-    let testButtonY = deleteContactsFromDeviceButton.frame.maxY > view.frame.maxY - Constants.buttonHeight - Constants.topSpacing ? view.frame.maxY - Constants.buttonHeight : view.frame.maxY - Constants.buttonHeight - Constants.topSpacing
+    let testButtonY = deleteContactsFromDeviceButton.frame.maxY > view.frame.maxY - UIConstants.buttonHeight - UIConstants.topSpacing ? view.frame.maxY - UIConstants.buttonHeight : view.frame.maxY - UIConstants.buttonHeight - UIConstants.topSpacing
 
     beginSearchTestButton.frame = CGRect(
-      x: Constants.leftInset,
+      x: UIConstants.leftInset,
       y: testButtonY,
-      width: view.frame.width - 2 * Constants.leftInset,
-      height: Constants.buttonHeight
+      width: view.frame.width - 2 * UIConstants.leftInset,
+      height: UIConstants.buttonHeight
     )
   }
 
@@ -118,6 +149,14 @@ class MainVC: UIViewController {
     if let labelText = label?.text, let indexOfColon = labelText.firstIndex(of: ":") {
       label?.text = labelText[labelText.startIndex..<indexOfColon] + " \(n)"
     }
+  }
+
+  @objc func hideKeyboard() {
+    if let batchSizeString = batchSizeTextField.text, let batchSize = Int(batchSizeString) {
+      PersistentDataController.shared.batchSize = batchSize
+    }
+    
+    view.endEditing(true)
   }
 
   // MARK: - Button Handlers
@@ -137,79 +176,84 @@ class MainVC: UIViewController {
       let endIndex = startIndex + desiredAmount - 1
       let contactsSlice = Array(ContactListParser.shared.inMemoryContacts[startIndex...endIndex])
 
-      let spinner = Spinner(style: .large)
-      strongSelf.view.addSubview(spinner)
-
-      spinner.translatesAutoresizingMaskIntoConstraints = false
-      spinner.centerXAnchor.constraint(equalTo: strongSelf.view.centerXAnchor).isActive = true
-      spinner.centerYAnchor.constraint(equalTo: strongSelf.view.centerYAnchor).isActive = true
-      spinner.heightAnchor.constraint(equalToConstant: 100).isActive = true
-      spinner.widthAnchor.constraint(equalToConstant: 100).isActive = true
-
-      spinner.startAnimating()
+      let progressBar = ProgressBar()
+      strongSelf.view.addSubview(progressBar)
+      progressBar.translatesAutoresizingMaskIntoConstraints = false
+      progressBar.centerXAnchor.constraint(equalTo: strongSelf.view.centerXAnchor).isActive = true
+      progressBar.centerYAnchor.constraint(equalTo: strongSelf.view.centerYAnchor).isActive = true
+      progressBar.heightAnchor.constraint(equalToConstant: 150).isActive = true
+      progressBar.widthAnchor.constraint(equalToConstant: strongSelf.view.frame.width * 0.5).isActive = true
 
       let queue = DispatchQueue(label: "AddContactsDispatchQueue")
       queue.async {
+        let progressIndicatorHandler: (Float) -> Void = { progress in
+          DispatchQueue.main.async {
+            progressBar.setProgress(progress)
+          }
+        }
 
         let startTime = Date()
-        let result = ContactStoreManager.shared.addContactsToDevice(contactsSlice)
+        let result = ContactStoreManager.shared.addContactsToDevice(contactsSlice, progressIndicatorHandler: progressIndicatorHandler)
+        let endTime = Date()
+        let timeInterval = String(endTime.timeIntervalSince(startTime)).prefix(10)
+
+        DispatchQueue.main.async {
+          let alertTitle = "\(result.description)\n\(timeInterval) (s)"
+          let alertController = UIAlertController(title: alertTitle)
+          strongSelf.present(alertController, animated: true, completion: nil)
+
+          strongSelf.setUpLabels()
+          progressBar.removeFromSuperview()
+        }
+      }
+    }
+  }
+
+  @objc func didTapDeleteContacts() {
+    DispatchQueue.main.async { [weak self] in
+      guard let strongSelf = self else {
+        return
+      }
+
+      let progressBar = ProgressBar()
+      strongSelf.view.addSubview(progressBar)
+      progressBar.translatesAutoresizingMaskIntoConstraints = false
+      progressBar.centerXAnchor.constraint(equalTo: strongSelf.view.centerXAnchor).isActive = true
+      progressBar.centerYAnchor.constraint(equalTo: strongSelf.view.centerYAnchor).isActive = true
+      progressBar.heightAnchor.constraint(equalToConstant: 150).isActive = true
+      progressBar.widthAnchor.constraint(equalToConstant: strongSelf.view.frame.width * 0.5).isActive = true
+
+      let dispatchQueue = DispatchQueue(label: "DeleteContactsDispatchQueue")
+      dispatchQueue.async { [weak self] in
+        guard let strongSelf = self else {
+          return
+        }
+
+        let progressIndicatorHandler: (Float) -> Void = { progress in
+           progressBar.setProgress(progress)
+        }
+
+        let startTime = Date()
+        let result = ContactStoreManager.shared.deleteContacts(progressIndicatorHandler: progressIndicatorHandler)
         let endTime = Date()
 
         let timeInterval = String(endTime.timeIntervalSince(startTime)).prefix(10)
 
         DispatchQueue.main.async {
+          progressBar.removeFromSuperview()
+
           let alertTitle = "\(result.description)\n\(timeInterval) (s)"
-          let alertController = strongSelf.createSimpleAlertController(title: alertTitle)
+          let alertController = UIAlertController(title: alertTitle)
           strongSelf.present(alertController, animated: true, completion: nil)
-
           strongSelf.setUpLabels()
-          spinner.stopAnimating()
-          spinner.removeFromSuperview()
         }
-      }
-
-    }
-  }
-
-  @objc func didTapDeleteContacts() {
-    let spinner = Spinner(style: .large)
-    self.view.addSubview(spinner)
-
-    spinner.translatesAutoresizingMaskIntoConstraints = false
-    spinner.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-    spinner.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
-    spinner.heightAnchor.constraint(equalToConstant: 100).isActive = true
-    spinner.widthAnchor.constraint(equalToConstant: 100).isActive = true
-
-    spinner.startAnimating()
-
-    let dispatchQueue = DispatchQueue(label: "DeleteContactsDispatchQueue")
-    dispatchQueue.async { [weak self] in
-      guard let strongSelf = self else {
-        return
-      }
-
-      let startTime = Date()
-      let result = ContactStoreManager.shared.deleteContacts()
-      let endTime = Date()
-
-      let timeInterval = String(endTime.timeIntervalSince(startTime)).prefix(10)
-
-      DispatchQueue.main.async {
-        spinner.stopAnimating()
-        spinner.removeFromSuperview()
-
-        let alertTitle = "\(result.description)\n\(timeInterval) (s)"
-        let alertController = strongSelf.createSimpleAlertController(title: alertTitle)
-        strongSelf.present(alertController, animated: true, completion: nil)
-        strongSelf.setUpLabels()
       }
     }
   }
 
   @objc func didTapBeginSearchTestButton() {
     if ContactStoreManager.shared.getNumberOfTestContactsOnDevice() == 0 {
-      let alert = createSimpleAlertController(title: "Add contacts to device before proceeding")
+      let alert = UIAlertController(title: "Add contacts to device before proceeding")
       present(alert, animated: true, completion: nil)
     }
     else {
@@ -243,7 +287,7 @@ class MainVC: UIViewController {
       }()
 
       guard amountToExport <= maxAmount else {
-        let miniAlertController = strongSelf.createSimpleAlertController(title: "Please enter a number within 0 and \(maxAmount)")
+        let miniAlertController = UIAlertController(title: "Please enter a number within 0 and \(maxAmount)")
         miniAlertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         strongSelf.present(miniAlertController, animated: true, completion: nil)
         return
@@ -259,11 +303,5 @@ class MainVC: UIViewController {
 
 
     self.present(alertController, animated: true, completion: nil)
-  }
-
-  func createSimpleAlertController(title: String) -> UIAlertController {
-    let controller = UIAlertController(title: title, message: "", preferredStyle: .alert)
-    controller.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-    return controller
   }
 }

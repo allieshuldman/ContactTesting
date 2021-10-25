@@ -13,11 +13,11 @@ class GrayButton: UIButton {
 
     self.frame = frame
 
-    backgroundColor = UIColor(red: 0.91, green: 0.91, blue: 0.91, alpha: 1.0)
+    backgroundColor = Colors.lightGray
     titleLabel?.textAlignment = .center
     setTitleColor(.darkGray, for: .normal)
     setTitleColor(.gray, for: .highlighted)
-    layer.cornerRadius = Constants.cornerRadius
+    layer.cornerRadius = UIConstants.cornerRadius
   }
 
   required init?(coder: NSCoder) {

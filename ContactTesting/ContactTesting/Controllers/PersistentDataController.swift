@@ -52,8 +52,12 @@ class PersistentDataController {
     return store.value(forKey: Key.exportCountKey) as? Int ?? 0
   }
 
-  func updateExportedCount(_ count: Int) {
-    store.set(getExportedCount() + count, forKey: Key.exportCountKey)
+  func setExportCount(_ count: Int) {
+    store.set(count, forKey: Key.exportCountKey)
+  }
+
+  func incrementExportedCount(by amount: Int) {
+    store.set(getExportedCount() + amount, forKey: Key.exportCountKey)
   }
 
   func resetExportedCount() {
@@ -73,7 +77,6 @@ class PersistentDataController {
 
   func getDeviceId(contactId: String) -> String? {
     if let inMemoryValue = inMemoryIdMap[contactId] {
-      print("in mem")
       return inMemoryValue
     }
 

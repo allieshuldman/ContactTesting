@@ -151,7 +151,7 @@ class ContactStoreManager {
 
   // MARK: - Adding/Deleting from device
 
-  func addContactsToDevice(_ contacts: [Contact], progressIndicatorHandler: (Float) -> Void) -> AddResult {
+  func addContactsToDevice(_ contacts: [Contact], progressIndicatorHandler: ((Float) -> Void)?) -> AddResult {
     guard let group = getTestGroup(createIfDoesntExist: true) else {
       return .couldNotCreateGroup
     }
@@ -174,10 +174,10 @@ class ContactStoreManager {
       do {
         try store.execute(saveRequest)
         PersistentDataController.shared.storeTestGroupId(group.identifier)
-        PersistentDataController.shared.updateExportedCount(contactBatch.count)
+        PersistentDataController.shared.incrementExportedCount(by: contactBatch.count)
 
         contactsAdded += contactBatch.count
-        progressIndicatorHandler(Float(contactsAdded) / Float(contacts.count))
+        progressIndicatorHandler?(Float(contactsAdded) / Float(contacts.count))
       }
       catch {
         return .couldNotAddContacts
@@ -187,7 +187,7 @@ class ContactStoreManager {
     return .success
   }
 
-  func deleteContacts(progressIndicatorHandler: (Float) -> Void) -> DeleteResult {
+  func deleteContacts(progressIndicatorHandler: ((Float) -> Void)?) -> DeleteResult {
     guard let group = getTestGroup(createIfDoesntExist: false), let mutableGroup = group.mutableCopy() as? CNMutableGroup else {
       return .groupDoesntExist
     }
@@ -215,7 +215,7 @@ class ContactStoreManager {
       do {
         try store.execute(deleteContactsRequest)
         contactsDeleted += contactBatch.count
-        progressIndicatorHandler(Float(contactsDeleted) / Float(contacts.count))
+        progressIndicatorHandler?(Float(contactsDeleted) / Float(contacts.count))
       }
       catch {
         return .couldNotDeleteContacts
@@ -230,6 +230,55 @@ class ContactStoreManager {
     }
     catch {
       return .couldNotDeleteGroup
+    }
+
+    PersistentDataController.shared.clearData()
+    return .success
+  }
+
+  func deleteAllContacts(progressIndicatorHandler: ((Float) -> Void)?) -> DeleteResult {
+    var contacts = [CNContact]()
+
+    do {
+      let containers = try store.containers(matching: nil)
+      for container in containers {
+        let fetchPredicate = CNContact.predicateForContactsInContainer(withIdentifier: container.identifier)
+        contacts += try store.unifiedContacts(matching: fetchPredicate, keysToFetch: [])
+      }
+    }
+    catch {
+      return .couldNotFetchContacts
+    }
+
+    var contactsDeleted = 0
+
+    for contactBatch in createBatches(allContacts: contacts, batchSize: PersistentDataController.shared.batchSize) {
+      let deleteContactsRequest = CNSaveRequest()
+      for cnContact in contactBatch {
+        if let mutableContact = cnContact.mutableCopy() as? CNMutableContact {
+          deleteContactsRequest.delete(mutableContact)
+        }
+      }
+      do {
+        try store.execute(deleteContactsRequest)
+        contactsDeleted += contactBatch.count
+        progressIndicatorHandler?(Float(contactsDeleted) / Float(contacts.count))
+      }
+      catch {
+        return .couldNotDeleteContacts
+      }
+    }
+
+    if let group = getTestGroup(createIfDoesntExist: false), let mutableGroup = group.mutableCopy() as? CNMutableGroup {
+      let deleteGroupRequest = CNSaveRequest()
+      deleteGroupRequest.delete(mutableGroup)
+
+      do {
+        try store.execute(deleteGroupRequest)
+      }
+      catch {
+        return .couldNotDeleteGroup
+      }
     }
 
     PersistentDataController.shared.clearData()
@@ -263,7 +312,7 @@ class ContactStoreManager {
 
       // In case the app was deleted but the contacts were not
       if contacts.count != PersistentDataController.shared.getExportedCount() {
-        PersistentDataController.shared.updateExportedCount(contacts.count)
+        PersistentDataController.shared.setExportCount(contacts.count)
       }
 
       return contacts.count

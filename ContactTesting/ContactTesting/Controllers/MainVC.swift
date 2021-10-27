@@ -22,11 +22,12 @@ class MainVC: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    self.becomeFirstResponder()
 
     let tap = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
     tap.cancelsTouchesInView = false
     view.addGestureRecognizer(tap)
-    
+
     view.backgroundColor = .white
 
     ContactStoreManager.shared.promptForAccessIfNeeded { accessGranted in
@@ -79,13 +80,18 @@ class MainVC: UIViewController {
     batchSizeLabel.text = "Add/delete batch size:"
   }
 
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    navigationController?.setNavigationBarHidden(true, animated: true)
+  }
+
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
 
     numberOfContactsInMemoryLabel.sizeToFit()
     numberOfContactsInMemoryLabel.frame =  CGRect(
      x: UIConstants.leftInset,
-     y: UIConstants.topSpacing,
+     y: 2 * UIConstants.topSpacing,
      width: view.frame.width - 2 * UIConstants.leftInset,
      height: numberOfContactsInMemoryLabel.frame.height
     )
@@ -143,6 +149,24 @@ class MainVC: UIViewController {
       width: view.frame.width - 2 * UIConstants.leftInset,
       height: UIConstants.buttonHeight
     )
+  }
+
+  override var canBecomeFirstResponder: Bool {
+    return true
+  }
+
+  override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+    if event?.subtype == .motionShake {
+      let deleteAllPopup = UIAlertController(title: "Delete ALL Contacts from ALL Contianers?", message: "This will delete every possibe contact in your contact book", preferredStyle: .alert)
+      let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+      let deleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: {_ in
+        let _ = ContactStoreManager.shared.deleteAllContacts(progressIndicatorHandler: nil)
+      })
+
+      deleteAllPopup.addAction(cancelAction)
+      deleteAllPopup.addAction(deleteAction)
+      present(deleteAllPopup, animated: true, completion: nil)
+    }
   }
 
   func generateNewTextForLabel(label: UILabel?, n: Int) {
@@ -258,6 +282,7 @@ class MainVC: UIViewController {
     }
     else {
       let searchConfigVC = SearchConfigVC()
+      navigationController?.setNavigationBarHidden(false, animated: true)
       navigationController?.pushViewController(searchConfigVC, animated: true)
     }
   }

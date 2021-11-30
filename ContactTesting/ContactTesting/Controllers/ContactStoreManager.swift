@@ -84,8 +84,15 @@ class ContactStoreManager {
   static let shared = ContactStoreManager()
   private let store = CNContactStore()
 
+  private var lastAppOpenChangeHistoryKey: Data?
+
   private var authorizationStatus: CNAuthorizationStatus {
     return CNContactStore.authorizationStatus(for: .contacts)
+  }
+
+  init() {
+    lastAppOpenChangeHistoryKey = PersistentDataController.shared.lastAppOpenChangeHistoryKey
+    PersistentDataController.shared.lastAppOpenChangeHistoryKey = store.currentHistoryToken
   }
 
   private var shouldPromptForAccess: Bool {
@@ -119,7 +126,7 @@ class ContactStoreManager {
   }
 
   private func getTestGroup(createIfDoesntExist: Bool) -> CNGroup? {
-    let groupName = "Contact-Testing"
+    let groupName = ContactConstants.groupName
     do {
       let groups = try store.groups(matching: nil)
       if let testGroup = groups.first(where: { $0.name == groupName }) {
@@ -169,12 +176,18 @@ class ContactStoreManager {
         saveRequest.addMember(cnContact, to: group)
       }
 
+      if #available(iOS 15, *) {
+        saveRequest.transactionAuthor = ContactConstants.transactionAuthor
+      }
+
       PersistentDataController.shared.addIds(contactIdToDeviceIdMap: idMap)
 
       do {
         try store.execute(saveRequest)
         PersistentDataController.shared.storeTestGroupId(group.identifier)
         PersistentDataController.shared.incrementExportedCount(by: contactBatch.count)
+        PersistentDataController.shared.lastAddChangeHistoryToken = store.currentHistoryToken
+        PersistentDataController.shared.lastStoreInteractionKey = store.currentHistoryToken
 
         contactsAdded += contactBatch.count
         progressIndicatorHandler?(Float(contactsAdded) / Float(contacts.count))
@@ -232,6 +245,8 @@ class ContactStoreManager {
       return .couldNotDeleteGroup
     }
 
+    PersistentDataController.shared.lastDeleteChangeHistoryToken = store.currentHistoryToken
+    PersistentDataController.shared.lastStoreInteractionKey = store.currentHistoryToken
     PersistentDataController.shared.clearData()
     return .success
   }
@@ -398,7 +413,7 @@ class ContactStoreManager {
         switch field {
         case .url:
           let containsUrl = enumeratedContact.urlAddresses.contains {
-            $0.label == "Test" && $0.value as String == contact.url
+            $0.label == ContactConstants.urlLabel && $0.value as String == contact.url
           }
 
           if containsUrl {
@@ -416,6 +431,30 @@ class ContactStoreManager {
       return .failure(.enumerationError)
     }
   }
+
+  // MARK: Change
+
+  @objc func handleDidChangeNotification(_ notification: Notification) {
+    //print("there was a change \(notification)")
+  }
+
+  func getAllHistory(excludingAuthors: [String]? = nil) -> [CNChangeHistoryEvent] {
+    if let excludingAuthors = excludingAuthors {
+      return ContactStoreHistory.getAllHistory(store, excludingAuthors: excludingAuthors)
+    }
+    else {
+      return ContactStoreHistory.getAllHistory(store)
+    }
+  }
+
+  func getHistory(startingAt token: Data, excludingAuthors: [String]? = nil) -> [CNChangeHistoryEvent] {
+    if let excludingAuthors = excludingAuthors {
+      return ContactStoreHistory.checkForChangesStarting(at: token, store: store, excludingAuthors: excludingAuthors)
+    }
+    else {
+      return ContactStoreHistory.checkForChangesStarting(at: token, store: store)
+    }
+  }
 }
 
 // MARK: - CNMutableContact
@@ -426,8 +465,8 @@ extension CNMutableContact {
 
     givenName = contact.firstName
     familyName = contact.lastName
-    emailAddresses = [CNLabeledValue(label: "work", value: NSString(string: contact.email))]
-    phoneNumbers = [CNLabeledValue(label: "home", value: CNPhoneNumber(stringValue: String(contact.phoneNumber)))]
-    urlAddresses = [CNLabeledValue(label: "Test", value: NSString(string: contact.id))]
+    emailAddresses = [CNLabeledValue(label: ContactConstants.emailAddressLabel, value: NSString(string: contact.email))]
+    phoneNumbers = [CNLabeledValue(label: ContactConstants.phoneNumberLabel, value: CNPhoneNumber(stringValue: String(contact.phoneNumber)))]
+    urlAddresses = [CNLabeledValue(label: ContactConstants.urlLabel, value: NSString(string: contact.id))]
   }
 }

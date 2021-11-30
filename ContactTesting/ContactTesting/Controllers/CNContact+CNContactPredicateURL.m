@@ -5,7 +5,7 @@
 //  Created by Allie Shuldman on 10/21/21.
 //
 
-#import "CNContactPredicateURL.h"
+#import "CNContact+CNContactPredicateURL.h"
 #import <Contacts/Contacts.h>
 
 @implementation CNContact (CNContactPredicateURL)

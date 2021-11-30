@@ -13,7 +13,7 @@ class GrayButton: UIButton {
 
     self.frame = frame
 
-    backgroundColor = Colors.lightGray
+    backgroundColor = .lightGray
     titleLabel?.textAlignment = .center
     setTitleColor(.darkGray, for: .normal)
     setTitleColor(.gray, for: .highlighted)

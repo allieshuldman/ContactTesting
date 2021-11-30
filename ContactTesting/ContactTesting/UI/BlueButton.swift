@@ -13,9 +13,9 @@ class BlueButton: UIButton {
 
     self.frame = frame
 
-    backgroundColor = Colors.lightBlue
+    backgroundColor = .lightBlue
     titleLabel?.textAlignment = .center
-    setTitleColor(Colors.darkBlue, for: .normal)
+    setTitleColor(.darkBlue, for: .normal)
     setTitleColor(.gray, for: .highlighted)
     layer.cornerRadius = UIConstants.cornerRadius
   }

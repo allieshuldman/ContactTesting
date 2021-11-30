@@ -48,6 +48,9 @@ class SearchConfigVC: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+
+    title = "Search Configuration"
+
     let tap = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
     tap.cancelsTouchesInView = false
     view.addGestureRecognizer(tap)
@@ -80,9 +83,16 @@ class SearchConfigVC: UIViewController {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
 
+    scrollView.frame = CGRect(
+      x: 0,
+      y: 0,
+      width: view.frame.width,
+      height: tabBarController?.tabBar.frame.minY ?? view.frame.maxY
+    )
+
     beginSearchTestButton.frame = CGRect(
       x: UIConstants.leftInset,
-      y: view.frame.maxY - UIConstants.buttonHeight - UIConstants.topSpacing,
+      y: (tabBarController?.tabBar.frame.minY ?? view.frame.maxY) - UIConstants.buttonHeight - UIConstants.topSpacing,
       width: view.frame.width - 2 * UIConstants.leftInset,
       height: UIConstants.buttonHeight
     )
@@ -100,12 +110,10 @@ class SearchConfigVC: UIViewController {
 
     buttonBackground.layer.addSublayer(gradientLayer)
 
-    scrollView.frame = view.frame
-
     amountLabel.sizeToFit()
     amountLabel.frame = CGRect(
       x: UIConstants.leftInset,
-      y: UIConstants.topSpacing,
+      y: 10.0,
       width: view.frame.width - 2 * UIConstants.leftInset,
       height: amountLabel.frame.height
     )

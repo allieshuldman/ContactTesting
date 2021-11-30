@@ -11,8 +11,8 @@ class ProgressBar: UIView {
 
   private let progressBar: UIProgressView = {
     let progressView = UIProgressView()
-    progressView.backgroundColor = Colors.lightGray
-    progressView.tintColor = Colors.progressBlue
+    progressView.backgroundColor = .lightGray
+    progressView.tintColor = .progressBlue
     progressView.layer.cornerRadius = UIConstants.cornerRadius
     progressView.clipsToBounds = true
     return progressView

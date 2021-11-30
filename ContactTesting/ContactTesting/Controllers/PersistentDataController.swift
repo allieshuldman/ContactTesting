@@ -13,6 +13,10 @@ class PersistentDataController {
     static let exportCountKey = "exportCountKey"
     static let contactIdMapKey = "contactIdMapKey"
     static let batchSizeKey = "batchSizeKey"
+    static let lastAppOpenChangeHistoryKey = "lastAppOpenChangeHistoryKey"
+    static let lastAddChangeHistoryKey = "lastAddChangeHistoryKey"
+    static let lastDeleteChangeHistoryKey = "lastDeleteChangeHistoryKey"
+    static let lastStoreInteractionKey = "lastStoreInteractionKey"
   }
 
   static let shared = PersistentDataController()
@@ -92,12 +96,51 @@ class PersistentDataController {
   }
 
   // MARK: - Batch size
+
   var batchSize: Int {
     get {
       return store.value(forKey: Key.batchSizeKey) as? Int ?? 100
     }
     set {
       store.set(newValue, forKey: Key.batchSizeKey)
+    }
+  }
+
+  // MARK: - Change History
+
+  var lastAppOpenChangeHistoryKey: Data? {
+    get {
+      return store.value(forKey: Key.lastAppOpenChangeHistoryKey) as? Data
+    }
+    set {
+      store.set(newValue, forKey: Key.lastAppOpenChangeHistoryKey)
+    }
+  }
+
+  var lastAddChangeHistoryToken: Data? {
+    get {
+      return store.value(forKey: Key.lastAddChangeHistoryKey) as? Data
+    }
+    set {
+      store.set(newValue, forKey: Key.lastAddChangeHistoryKey)
+    }
+  }
+
+  var lastDeleteChangeHistoryToken: Data? {
+    get {
+      return store.value(forKey: Key.lastDeleteChangeHistoryKey) as? Data
+    }
+    set {
+      store.set(newValue, forKey: Key.lastDeleteChangeHistoryKey)
+    }
+  }
+
+  var lastStoreInteractionKey: Data? {
+    get {
+      return store.value(forKey: Key.lastStoreInteractionKey) as? Data
+    }
+    set {
+      store.set(newValue, forKey: Key.lastStoreInteractionKey)
     }
   }
 }

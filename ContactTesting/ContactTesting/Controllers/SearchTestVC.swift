@@ -80,7 +80,12 @@ class SearchTestVC: UIViewController {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
 
-    scrollView.frame = view.frame
+    scrollView.frame = CGRect(
+      x: 0,
+      y: 0,
+      width: view.frame.width,
+      height: tabBarController?.tabBar.frame.minY ?? view.frame.height
+    )
 
     searchParametersLabel.frame = CGRect(
       x: UIConstants.leftInset,

@@ -12,7 +12,7 @@ class Spinner: UIActivityIndicatorView {
   override init(style: UIActivityIndicatorView.Style) {
     super.init(style: style)
 
-    backgroundColor = Colors.progressBlue
+    backgroundColor = .progressBlue
     color = .white
     layer.cornerRadius = 10
   }

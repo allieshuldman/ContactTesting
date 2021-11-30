@@ -1,13 +1,14 @@
 //
-//  ViewController.swift
-//  ContactTesting
+//  AddContactsVC.swift
+//  AddContactsVC
 //
-//  Created by Allie Shuldman on 10/4/21.
+//  Created by Allie Shuldman on 11/19/21.
 //
 
+import Foundation
 import UIKit
 
-class MainVC: UIViewController {
+class ManageContactsVC: UIViewController {
   let numberOfContactsInMemoryLabel = BoldLabel()
   let numberOfContactsInContainerLabel = BoldLabel()
   let numberOfContactsOnDeviceLabel = BoldLabel()
@@ -18,8 +19,6 @@ class MainVC: UIViewController {
   let addContactsToDeviceButton = GrayButton()
   let deleteContactsFromDeviceButton = GrayButton()
 
-  let beginSearchTestButton = BlueButton()
-
   override func viewDidLoad() {
     super.viewDidLoad()
     self.becomeFirstResponder()
@@ -29,6 +28,7 @@ class MainVC: UIViewController {
     view.addGestureRecognizer(tap)
 
     view.backgroundColor = .white
+    title = "Manage Contacts"
 
     ContactStoreManager.shared.promptForAccessIfNeeded { accessGranted in
       if accessGranted {
@@ -54,9 +54,6 @@ class MainVC: UIViewController {
     deleteContactsFromDeviceButton.setTitle("Delete contacts from device", for: .normal)
     deleteContactsFromDeviceButton.addTarget(self, action: #selector(didTapDeleteContacts), for: .touchUpInside)
 
-    beginSearchTestButton.setTitle("Configure search test", for: .normal)
-    beginSearchTestButton.addTarget(self, action: #selector(didTapBeginSearchTestButton), for: .touchUpInside)
-
     batchSizeTextField.text = "  \(PersistentDataController.shared.batchSize)"
     batchSizeTextField.backgroundColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
     batchSizeTextField.layer.cornerRadius = UIConstants.cornerRadius
@@ -69,7 +66,6 @@ class MainVC: UIViewController {
     view.addSubview(batchSizeTextField)
     view.addSubview(addContactsToDeviceButton)
     view.addSubview(deleteContactsFromDeviceButton)
-    view.addSubview(beginSearchTestButton)
   }
 
   func setUpLabels() {
@@ -82,7 +78,6 @@ class MainVC: UIViewController {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    navigationController?.setNavigationBarHidden(true, animated: true)
   }
 
   override func viewDidLayoutSubviews() {
@@ -91,7 +86,7 @@ class MainVC: UIViewController {
     numberOfContactsInMemoryLabel.sizeToFit()
     numberOfContactsInMemoryLabel.frame =  CGRect(
      x: UIConstants.leftInset,
-     y: 2 * UIConstants.topSpacing,
+     y: (navigationController?.navigationBar.frame.maxY ?? 0) + 10.0,
      width: view.frame.width - 2 * UIConstants.leftInset,
      height: numberOfContactsInMemoryLabel.frame.height
     )
@@ -140,15 +135,6 @@ class MainVC: UIViewController {
       width: view.frame.width - 2 * UIConstants.leftInset,
       height: UIConstants.buttonHeight
     )
-
-    let testButtonY = deleteContactsFromDeviceButton.frame.maxY > view.frame.maxY - UIConstants.buttonHeight - UIConstants.topSpacing ? view.frame.maxY - UIConstants.buttonHeight : view.frame.maxY - UIConstants.buttonHeight - UIConstants.topSpacing
-
-    beginSearchTestButton.frame = CGRect(
-      x: UIConstants.leftInset,
-      y: testButtonY,
-      width: view.frame.width - 2 * UIConstants.leftInset,
-      height: UIConstants.buttonHeight
-    )
   }
 
   override var canBecomeFirstResponder: Bool {
@@ -179,7 +165,7 @@ class MainVC: UIViewController {
     if let batchSizeString = batchSizeTextField.text, let batchSize = Int(batchSizeString) {
       PersistentDataController.shared.batchSize = batchSize
     }
-    
+
     view.endEditing(true)
   }
 
@@ -272,18 +258,6 @@ class MainVC: UIViewController {
           strongSelf.setUpLabels()
         }
       }
-    }
-  }
-
-  @objc func didTapBeginSearchTestButton() {
-    if ContactStoreManager.shared.getNumberOfTestContactsOnDevice() == 0 {
-      let alert = UIAlertController(title: "Add contacts to device before proceeding")
-      present(alert, animated: true, completion: nil)
-    }
-    else {
-      let searchConfigVC = SearchConfigVC()
-      navigationController?.setNavigationBarHidden(false, animated: true)
-      navigationController?.pushViewController(searchConfigVC, animated: true)
     }
   }
 

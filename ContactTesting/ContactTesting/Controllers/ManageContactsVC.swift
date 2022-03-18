@@ -29,20 +29,7 @@ class ManageContactsVC: UIViewController {
 
     view.backgroundColor = .white
     title = "Manage Contacts"
-
-    ContactStoreManager.shared.promptForAccessIfNeeded { accessGranted in
-      if accessGranted {
-        DispatchQueue.main.async {
-          self.setUpView()
-        }
-      }
-      else {
-        DispatchQueue.main.async {
-          let alertController = UIAlertController(title: "Please grant contact access in device settings")
-          self.present(alertController, animated: true, completion: nil)
-        }
-      }
-    }
+    setUpView()
   }
 
   func setUpView() {
@@ -137,6 +124,8 @@ class ManageContactsVC: UIViewController {
     )
   }
 
+  // MARK: Motion Handling
+
   override var canBecomeFirstResponder: Bool {
     return true
   }
@@ -146,7 +135,30 @@ class ManageContactsVC: UIViewController {
       let deleteAllPopup = UIAlertController(title: "Delete ALL Contacts from ALL Contianers?", message: "This will delete every possibe contact in your contact book", preferredStyle: .alert)
       let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
       let deleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: {_ in
+        let spinner = Spinner(style: .large)
+
+        DispatchQueue.main.async { [weak self] in
+          guard let strongSelf = self else {
+            return
+          }
+
+          strongSelf.view.addSubview(spinner)
+
+          spinner.translatesAutoresizingMaskIntoConstraints = false
+          spinner.centerXAnchor.constraint(equalTo: strongSelf.view.centerXAnchor).isActive = true
+          spinner.centerYAnchor.constraint(equalTo: strongSelf.view.centerYAnchor).isActive = true
+          spinner.heightAnchor.constraint(equalToConstant: 100).isActive = true
+          spinner.widthAnchor.constraint(equalToConstant: 100).isActive = true
+
+          spinner.startAnimating()
+        }
+        
         let _ = ContactStoreManager.shared.deleteAllContacts(progressIndicatorHandler: nil)
+
+        DispatchQueue.main.async {
+          spinner.stopAnimating()
+          spinner.removeFromSuperview()
+        }
       })
 
       deleteAllPopup.addAction(cancelAction)

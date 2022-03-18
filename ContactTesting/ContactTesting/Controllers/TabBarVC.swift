@@ -9,33 +9,44 @@ import Foundation
 import UIKit
 
 class TabBarVC: UITabBarController {
-  override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-    super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+  override func viewDidLoad() {
+    super.viewDidLoad()
 
-    edgesForExtendedLayout = []
+    let _ = ContactListParser.shared
 
-    let manageContactsVCTabBarItem = UITabBarItem(title: "Manage Contacts", image: UIImage(systemName: "person.crop.circle.badge.plus"), selectedImage: UIImage(systemName: "person.crop.circle.fill.badge.plus"))
-    let manageContactsVC = UINavigationController(rootViewController: ManageContactsVC())
-    manageContactsVC.tabBarItem = manageContactsVCTabBarItem
-    manageContactsVC.navigationBar.backgroundColor = .veryLightGray
+    self.view.backgroundColor = .white
 
-    let searchConfigVCTabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass.circle"), selectedImage: UIImage(systemName: "magnifyingglass.circle.fill"))
-    let searchConfigVC = UINavigationController(rootViewController: SearchConfigVC())
-    searchConfigVC.tabBarItem = searchConfigVCTabBarItem
-    searchConfigVC.navigationBar.backgroundColor = .veryLightGray
+    PermissionsManager.shared.promptForAccessIfNeeded() { success in
+      guard success else {
+        return
+      }
 
-    let historySelectionVCTabBarItem = UITabBarItem(title: "History", image: UIImage(systemName: "clock"), selectedImage: UIImage(systemName: "clock.fill"))
-    let historySelectionVC = UINavigationController(rootViewController: HistorySelectionVC())
-    historySelectionVC.tabBarItem = historySelectionVCTabBarItem
-    historySelectionVC.navigationBar.backgroundColor = .veryLightGray
+      DispatchQueue.main.async {
+        let manageContactsVCTabBarItem = UITabBarItem(title: "Manage Contacts", image: UIImage(systemName: "person.crop.circle.badge.plus"), selectedImage: UIImage(systemName: "person.crop.circle.fill.badge.plus"))
+        let manageContactsVC = UINavigationController(rootViewController: ManageContactsVC())
+        manageContactsVC.tabBarItem = manageContactsVCTabBarItem
+        manageContactsVC.navigationBar.backgroundColor = .veryLightGray
 
-    viewControllers = [manageContactsVC, searchConfigVC, historySelectionVC]
-    selectedIndex = 0
+        let searchConfigVCTabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass.circle"), selectedImage: UIImage(systemName: "magnifyingglass.circle.fill"))
+        let searchConfigVC = UINavigationController(rootViewController: SearchConfigVC())
+        searchConfigVC.tabBarItem = searchConfigVCTabBarItem
+        searchConfigVC.navigationBar.backgroundColor = .veryLightGray
 
-    tabBar.backgroundColor = .veryLightGray
-  }
+        let historySelectionVCTabBarItem = UITabBarItem(title: "History", image: UIImage(systemName: "clock"), selectedImage: UIImage(systemName: "clock.fill"))
+        let historySelectionVC = UINavigationController(rootViewController: HistorySelectionVC())
+        historySelectionVC.tabBarItem = historySelectionVCTabBarItem
+        historySelectionVC.navigationBar.backgroundColor = .veryLightGray
 
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
+        let fullTestConfigVCTabBarItem = UITabBarItem(title: "Full Test", image: UIImage(systemName: "speedometer"), selectedImage: UIImage(systemName: "speedometer"))
+        let fullTestConfigVC = UINavigationController(rootViewController: FullTestConfigVC())
+        fullTestConfigVC.tabBarItem = fullTestConfigVCTabBarItem
+        fullTestConfigVC.navigationBar.backgroundColor = .veryLightGray
+
+        self.viewControllers = [manageContactsVC, fullTestConfigVC, searchConfigVC, historySelectionVC]
+        self.selectedIndex = 0
+
+        self.tabBar.backgroundColor = .veryLightGray
+      }
+    }
   }
 }

@@ -31,19 +31,7 @@ class MainVC: UIViewController {
 
     view.backgroundColor = .white
 
-    ContactStoreManager.shared.promptForAccessIfNeeded { accessGranted in
-      if accessGranted {
-        DispatchQueue.main.async {
-          self.setUpView()
-        }
-      }
-      else {
-        DispatchQueue.main.async {
-          let alertController = UIAlertController(title: "Please grant contact access in device settings")
-          self.present(alertController, animated: true, completion: nil)
-        }
-      }
-    }
+    self.setUpView()
   }
 
   func setUpView() {

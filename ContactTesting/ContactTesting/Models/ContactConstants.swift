@@ -9,7 +9,7 @@ import Foundation
 
 enum ContactConstants {
   static let groupName = "Contact-Testing"
-  static let transactionAuthor = ""
+  static let transactionAuthor = "Contact-Testing"
   static let urlLabel = "Test"
   static let emailAddressLabel = "work"
   static let phoneNumberLabel = "home"

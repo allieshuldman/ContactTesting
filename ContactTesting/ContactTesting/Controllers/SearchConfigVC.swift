@@ -20,7 +20,9 @@ class SearchConfigVC: UIViewController {
   }
 
   static let cellIdentifier = "SearchConfigCell"
-  let maxContacts = ContactStoreManager.shared.getNumberOfTestContactsOnDevice()
+  var maxContacts: Int {
+    ContactStoreManager.shared.getNumberOfTestContactsOnDevice()
+  }
 
   let scrollView = UIScrollView()
   let tableView = UITableView(frame: .zero, style: .insetGrouped)

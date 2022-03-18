@@ -10,6 +10,7 @@
 		C71377D62714A3BF003162B4 /* SearchTestVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71377D52714A3BF003162B4 /* SearchTestVC.swift */; };
 		C71377DC27161D7B003162B4 /* PersistentDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71377DB27161D7B003162B4 /* PersistentDataController.swift */; };
 		C71377DE27162798003162B4 /* Spinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71377DD27162798003162B4 /* Spinner.swift */; };
+		C73AF69127E3CDF60097145B /* PermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73AF69027E3CDF60097145B /* PermissionsManager.swift */; };
 		C749EECC270BC816005D6629 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C749EECB270BC816005D6629 /* AppDelegate.swift */; };
 		C749EECE270BC816005D6629 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C749EECD270BC816005D6629 /* SceneDelegate.swift */; };
 		C749EED0270BC816005D6629 /* MainVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C749EECF270BC816005D6629 /* MainVC.swift */; };
@@ -36,10 +37,11 @@
 		C7A395F127449A7B00467655 /* CNChangeHistoryEvent+Title.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A395F027449A7B00467655 /* CNChangeHistoryEvent+Title.swift */; };
 		C7A395F32748468600467655 /* EmptyHistoryVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A395F22748468600467655 /* EmptyHistoryVC.swift */; };
 		C7A395F527484DC300467655 /* HistorySelectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A395F427484DC300467655 /* HistorySelectionVC.swift */; };
-		C7A395F727485A8A00467655 /* SideBarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A395F627485A8900467655 /* SideBarVC.swift */; };
 		C7A395F927485BC200467655 /* ManageContactsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A395F827485BC200467655 /* ManageContactsVC.swift */; };
 		C7A395FB274AA4D900467655 /* TabBarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A395FA274AA4D900467655 /* TabBarVC.swift */; };
 		C7A39600274C562F00467655 /* ContactConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A395FF274C562F00467655 /* ContactConstants.swift */; };
+		C7BD9178276159F100C10371 /* FullTestConfigVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7BD9177276159F100C10371 /* FullTestConfigVC.swift */; };
+		C7BD917A27615FA600C10371 /* FullTestVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7BD917927615FA500C10371 /* FullTestVC.swift */; };
 		C7E03B9D270CFAEA003DAD49 /* csvjsonid.json in Resources */ = {isa = PBXBuildFile; fileRef = C7E03B9C270CFAEA003DAD49 /* csvjsonid.json */; };
 		C7E03B9F270D00C3003DAD49 /* ContactStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E03B9E270D00C3003DAD49 /* ContactStoreManager.swift */; };
 /* End PBXBuildFile section */
@@ -65,6 +67,7 @@
 		C71377D52714A3BF003162B4 /* SearchTestVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTestVC.swift; sourceTree = "<group>"; };
 		C71377DB27161D7B003162B4 /* PersistentDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentDataController.swift; sourceTree = "<group>"; };
 		C71377DD27162798003162B4 /* Spinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spinner.swift; sourceTree = "<group>"; };
+		C73AF69027E3CDF60097145B /* PermissionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsManager.swift; sourceTree = "<group>"; };
 		C749EEC8270BC816005D6629 /* ContactTesting.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ContactTesting.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C749EECB270BC816005D6629 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C749EECD270BC816005D6629 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -98,10 +101,11 @@
 		C7A395F027449A7B00467655 /* CNChangeHistoryEvent+Title.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CNChangeHistoryEvent+Title.swift"; sourceTree = "<group>"; };
 		C7A395F22748468600467655 /* EmptyHistoryVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyHistoryVC.swift; sourceTree = "<group>"; };
 		C7A395F427484DC300467655 /* HistorySelectionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistorySelectionVC.swift; sourceTree = "<group>"; };
-		C7A395F627485A8900467655 /* SideBarVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarVC.swift; sourceTree = "<group>"; };
 		C7A395F827485BC200467655 /* ManageContactsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageContactsVC.swift; sourceTree = "<group>"; };
 		C7A395FA274AA4D900467655 /* TabBarVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarVC.swift; sourceTree = "<group>"; };
 		C7A395FF274C562F00467655 /* ContactConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactConstants.swift; sourceTree = "<group>"; };
+		C7BD9177276159F100C10371 /* FullTestConfigVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullTestConfigVC.swift; sourceTree = "<group>"; };
+		C7BD917927615FA500C10371 /* FullTestVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullTestVC.swift; sourceTree = "<group>"; };
 		C7E03B9C270CFAEA003DAD49 /* csvjsonid.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = csvjsonid.json; sourceTree = "<group>"; };
 		C7E03B9E270D00C3003DAD49 /* ContactStoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStoreManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -131,6 +135,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C73AF69227E3D55E0097145B /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				C749EF02270CD3CD005D6629 /* ContactListParser.swift */,
+				C7E03B9E270D00C3003DAD49 /* ContactStoreManager.swift */,
+				C71377DB27161D7B003162B4 /* PersistentDataController.swift */,
+				C73AF69027E3CDF60097145B /* PermissionsManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
 		C749EEBF270BC816005D6629 = {
 			isa = PBXGroup;
 			children = (
@@ -157,6 +172,7 @@
 				C7A395FC274BF9F300467655 /* Old */,
 				C749EF06270CD489005D6629 /* Models */,
 				C749EF05270CD3E5005D6629 /* Launch */,
+				C73AF69227E3D55E0097145B /* Managers */,
 				C749EF04270CD3D5005D6629 /* Controllers */,
 				C749EEFF270CBFA3005D6629 /* UI */,
 				C749EED9270BC81C005D6629 /* Info.plist */,
@@ -200,17 +216,15 @@
 			isa = PBXGroup;
 			children = (
 				C7A395FA274AA4D900467655 /* TabBarVC.swift */,
+				C7A395F827485BC200467655 /* ManageContactsVC.swift */,
 				C763D1FB270FAE750000D18C /* SearchConfigVC.swift */,
 				C71377D52714A3BF003162B4 /* SearchTestVC.swift */,
-				C749EF02270CD3CD005D6629 /* ContactListParser.swift */,
-				C7E03B9E270D00C3003DAD49 /* ContactStoreManager.swift */,
-				C71377DB27161D7B003162B4 /* PersistentDataController.swift */,
 				C7A395EA2744299800467655 /* HistoryVC.swift */,
 				C7A395F427484DC300467655 /* HistorySelectionVC.swift */,
 				C7A395F22748468600467655 /* EmptyHistoryVC.swift */,
 				C7A395EE274498A900467655 /* HistoryVCDropdownTableView.swift */,
-				C7A395F627485A8900467655 /* SideBarVC.swift */,
-				C7A395F827485BC200467655 /* ManageContactsVC.swift */,
+				C7BD9177276159F100C10371 /* FullTestConfigVC.swift */,
+				C7BD917927615FA500C10371 /* FullTestVC.swift */,
 				C781C778272204F6007BD7C6 /* ContactTesting-Bridging-Header.h */,
 				C781C779272204F6007BD7C6 /* CNContact+CNContactPredicateURL.m */,
 				C781C77B27220714007BD7C6 /* CNContact+CNContactPredicateURL.h */,
@@ -393,6 +407,7 @@
 				C7A395E8273F37F200467655 /* ContactHistoryCache.m in Sources */,
 				C71377DE27162798003162B4 /* Spinner.swift in Sources */,
 				C7A395F32748468600467655 /* EmptyHistoryVC.swift in Sources */,
+				C73AF69127E3CDF60097145B /* PermissionsManager.swift in Sources */,
 				C7E03B9F270D00C3003DAD49 /* ContactStoreManager.swift in Sources */,
 				C7A395F127449A7B00467655 /* CNChangeHistoryEvent+Title.swift in Sources */,
 				C781C77D27221EF2007BD7C6 /* SimpleAlertController.swift in Sources */,
@@ -400,14 +415,15 @@
 				C7A395FB274AA4D900467655 /* TabBarVC.swift in Sources */,
 				C749EEFC270BCC38005D6629 /* GrayButton.swift in Sources */,
 				C781C78127271E9E007BD7C6 /* UIConstants.swift in Sources */,
+				C7BD9178276159F100C10371 /* FullTestConfigVC.swift in Sources */,
 				C749EECC270BC816005D6629 /* AppDelegate.swift in Sources */,
 				C763D1FE270FB2950000D18C /* SearchParametersModel.swift in Sources */,
 				C7A395EF274498A900467655 /* HistoryVCDropdownTableView.swift in Sources */,
 				C7A395ED2744688D00467655 /* CNContact+FullName.swift in Sources */,
 				C7A395F927485BC200467655 /* ManageContactsVC.swift in Sources */,
 				C7A395F527484DC300467655 /* HistorySelectionVC.swift in Sources */,
+				C7BD917A27615FA600C10371 /* FullTestVC.swift in Sources */,
 				C7A39600274C562F00467655 /* ContactConstants.swift in Sources */,
-				C7A395F727485A8A00467655 /* SideBarVC.swift in Sources */,
 				C71377DC27161D7B003162B4 /* PersistentDataController.swift in Sources */,
 				C749EEFE270CBF89005D6629 /* BoldLabel.swift in Sources */,
 				C781C77A272204F6007BD7C6 /* CNContact+CNContactPredicateURL.m in Sources */,

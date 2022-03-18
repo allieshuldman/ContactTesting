@@ -24,6 +24,7 @@ class PersistentDataController {
   var inMemoryIdMap: [String: String]
 
   // MARK: - Init
+  
   init() {
     inMemoryIdMap = store.value(forKey: Key.contactIdMapKey) as? [String: String] ?? [:]
   }

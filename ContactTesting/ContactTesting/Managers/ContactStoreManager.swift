@@ -86,35 +86,9 @@ class ContactStoreManager {
 
   private var lastAppOpenChangeHistoryKey: Data?
 
-  private var authorizationStatus: CNAuthorizationStatus {
-    return CNContactStore.authorizationStatus(for: .contacts)
-  }
-
   init() {
     lastAppOpenChangeHistoryKey = PersistentDataController.shared.lastAppOpenChangeHistoryKey
     PersistentDataController.shared.lastAppOpenChangeHistoryKey = store.currentHistoryToken
-  }
-
-  private var shouldPromptForAccess: Bool {
-    switch authorizationStatus {
-    case .notDetermined, .restricted, .denied:
-      return true
-    case .authorized:
-      return false
-    default:
-      return true
-    }
-  }
-
-  func promptForAccessIfNeeded(completion: @escaping (Bool) -> Void) {
-    if shouldPromptForAccess {
-      ContactStoreManager.shared.store.requestAccess(for: .contacts, completionHandler: {granted, _ in
-        completion(granted)
-      })
-    }
-    else {
-      completion(true)
-    }
   }
 
   private func getTestGroupId() -> String? {
@@ -432,11 +406,7 @@ class ContactStoreManager {
     }
   }
 
-  // MARK: Change
-
-  @objc func handleDidChangeNotification(_ notification: Notification) {
-    //print("there was a change \(notification)")
-  }
+  // MARK: Change History
 
   func getAllHistory(excludingAuthors: [String]? = nil) -> [CNChangeHistoryEvent] {
     if let excludingAuthors = excludingAuthors {
